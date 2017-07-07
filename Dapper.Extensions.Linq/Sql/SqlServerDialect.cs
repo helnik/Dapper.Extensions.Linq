@@ -150,16 +150,18 @@ namespace Dapper.Extensions.Linq.Sql
             const string searchFor = "SELECT ";
             return sql.Insert(sql.IndexOf(searchFor, StringComparison.OrdinalIgnoreCase) + searchFor.Length, string.Format("TOP ({0}) ", limit));
         }
-
+        
         public override string SetNolock(string sql)
-        {
-            if (sql.Contains(" WHERE "))
-                return sql.Insert(sql.IndexOf(" WHERE ", StringComparison.OrdinalIgnoreCase), @" (NOLOCK)");
+        {   
+            if (sql.IndexOf("NOLOCK", StringComparison.OrdinalIgnoreCase) >= 0) return sql;
 
-            if (sql.Contains(" ORDER BY "))
-                return sql.Insert(sql.IndexOf(" ORDER BY ", StringComparison.OrdinalIgnoreCase), @" (NOLOCK)");
+            if (sql.IndexOf("WHERE", StringComparison.OrdinalIgnoreCase) >= 0)
+                return sql.Insert(sql.IndexOf(" WHERE ", StringComparison.OrdinalIgnoreCase), @" WITH (NOLOCK) ");
 
-            return string.Concat(sql, " (NOLOCK)");
+            if (sql.IndexOf("ORDER BY", StringComparison.OrdinalIgnoreCase) >= 0)
+                return sql.Insert(sql.IndexOf(" ORDER BY ", StringComparison.OrdinalIgnoreCase), @" WITH (NOLOCK) ");
+
+            return string.Concat(sql, " WITH (NOLOCK) ");
         }
     }
 }
